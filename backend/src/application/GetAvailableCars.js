@@ -1,3 +1,5 @@
+const { ValidationError } = require('../domain/errors');
+
 class GetAvailableCars {
   constructor({ carRepository, bookingRepository, priceCalculator }) {
     this.carRepository = carRepository;
@@ -9,10 +11,10 @@ class GetAvailableCars {
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (isNaN(start) || isNaN(end)) {
-      throw new Error('Invalid dates');
+      throw new ValidationError('Invalid dates');
     }
     if (start >= end) {
-      throw new Error('startDate must be before endDate');
+      throw new ValidationError('startDate must be before endDate');
     }
 
     return this.carRepository

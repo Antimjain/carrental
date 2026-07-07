@@ -1,4 +1,5 @@
 const Booking = require('../domain/booking/Booking');
+const { ValidationError, NotFoundError, ConflictError } = require('../domain/errors');
 
 class CreateBooking {
   constructor({ carRepository, bookingRepository, priceCalculator }) {
@@ -11,32 +12,32 @@ class CreateBooking {
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (isNaN(start) || isNaN(end)) {
-      throw new Error('Invalid dates');
+      throw new ValidationError('Invalid dates');
     }
     if (start >= end) {
-      throw new Error('startDate must be before endDate');
+      throw new ValidationError('startDate must be before endDate');
     }
 
     const licenseUntil = new Date(licenseValidUntil);
     if (isNaN(licenseUntil) || licenseUntil < end) {
-      throw new Error('Driving license must be valid through the whole booking period');
+      throw new ValidationError('Driving license must be valid through the whole booking period');
     }
 
     const car = this.carRepository.findById(carId);
     if (!car) {
-      throw new Error('Car not found');
+      throw new NotFoundError('Car not found');
     }
 
     const userHasOverlap = this.bookingRepository
       .findByUser(userId)
       .some((b) => new Date(b.startDate) < end && new Date(b.endDate) > start);
     if (userHasOverlap) {
-      throw new Error('User already has a booking on these dates');
+      throw new ConflictError('User already has a booking on these dates');
     }
 
     const booked = this.bookingRepository.findByCarAndRange(carId, start, end).length;
     if (booked >= car.stock) {
-      throw new Error('No stock available for these dates');
+      throw new ConflictError('No stock available for these dates');
     }
 
     const totalPrice = this.priceCalculator.totalPrice(car, start, end);

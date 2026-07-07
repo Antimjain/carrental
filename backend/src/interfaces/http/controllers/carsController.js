@@ -9,7 +9,7 @@ function makeCarsController({ getAvailableCars }) {
       const cars = getAvailableCars.execute({ startDate, endDate });
       res.json(cars);
     } catch (err) {
-      res.status(400).json({ message: err.message });
+      res.status(err.status || 400).json({ message: err.message });
     }
   }
 
