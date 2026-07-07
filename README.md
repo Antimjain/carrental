@@ -1,39 +1,32 @@
 # Carental - Booking MVP
 
 A small car rental booking engine built for the Bolttech Carental fullstack test.
-The goal of this MVP is to show the booking motor: checking car availability for a
-date range and creating bookings.
+The MVP shows the booking motor: checking car availability for a date range and
+creating bookings, with seasonal pricing.
 
 ## Stack
 
 - Backend: Node + Express (plain JavaScript)
 - Frontend: React + Vite
-- Tests: Jest
+- Tests: Jest (+ supertest for the HTTP layer)
 
 ## Project structure
 
 ```
 backend/
   src/
-    domain/          business rules (cars, bookings, pricing) - no framework here
+    domain/          business rules (cars, bookings, pricing, errors) - no framework here
     application/     use cases, one per user story
     infrastructure/  adapters: in-memory repositories and seed data
     interfaces/http/ Express server, routes and controllers
     index.js         wires everything together and starts the server
-  features/          Jest tests for the use cases
+  features/          Jest tests for the domain, the use cases and the API
 frontend/
   src/               React app: availability search and booking form
 ```
 
-The backend follows a hexagonal / layered approach. The `domain` layer has no
-dependency on Express or storage, so the rules can be tested on their own and the
-outer adapters (HTTP, in-memory storage) can be swapped later.
-
-## User stories
-
-- US1: as a customer I want to see the availability of cars for a date range, with
-  pricing and stock.
-- US2: as a customer I want to create a booking for a car.
+See `ARCHITECTURE.md` for the reasoning behind the layers, and `NEXT_STEPS.md`
+for what a follow-up iteration would add.
 
 ## Running
 
@@ -46,7 +39,7 @@ npm start        # API on http://localhost:3001
 npm test         # run the Jest tests
 ```
 
-Frontend:
+Frontend (in a second terminal):
 
 ```
 cd frontend
@@ -54,11 +47,82 @@ npm install
 npm run dev      # app on http://localhost:5173
 ```
 
-## Seasons and pricing
+The frontend talks to the backend at `http://localhost:3001`.
+
+## User stories
+
+- US1: as a customer I want to see the availability of cars for a date range, with
+  pricing and stock.
+- US2: as a customer I want to create a booking for a car.
+
+## API
+
+### GET /cars/availability
+
+Query parameters: `startDate`, `endDate` (ISO dates, `YYYY-MM-DD`).
+
+Returns the cars that still have stock for the whole slot, each with its total
+booking price and average day price.
+
+```
+GET /cars/availability?startDate=2026-06-10&endDate=2026-06-13
+
+200 OK
+[
+  { "id": 1, "brand": "Toyota", "model": "Yaris", "availableStock": 3, "totalPrice": 295.29, "averageDayPrice": 98.43 },
+  ...
+]
+```
+
+### POST /bookings
+
+Body:
+
+```
+{
+  "carId": 1,
+  "userId": "u1",
+  "startDate": "2026-06-10",
+  "endDate": "2026-06-13",
+  "licenseValidUntil": "2027-01-01"
+}
+
+201 Created
+{ "id": 1, "carId": 1, "userId": "u1", "startDate": "2026-06-10", "endDate": "2026-06-13", "licenseValidUntil": "2027-01-01", "totalPrice": 295.29 }
+```
+
+Error responses:
+
+- `400` invalid input (missing fields, start not before end, license does not cover the period)
+- `404` car does not exist
+- `409` no stock for the dates, or the user already has a booking on overlapping dates
+
+## Business rules
+
+### Seasons
 
 - Peak: 1 June to 15 September
-- Mid: 15 September to 31 October, and 1 March to 1 June
-- Off: 1 November to 1 March
+- Mid: 1 March to 31 May, and 16 September to 31 October
+- Off: 1 November to end of February
 
-Each car has a price per day for each season. The booking price adds up the price of
-every day in the range using the season of that day.
+The ranges in the brief overlap on the boundary days; here they are made
+non-overlapping so every day belongs to exactly one season.
+
+### Pricing
+
+Each car has a price per day for each season. The booking price adds up the price
+of every day in the range using the season of that day. A slot counts the days from
+the start up to (not including) the end, so 10th to 13th is 3 days. The average day
+price is the total divided by the number of days.
+
+### Booking rules
+
+- A user can only hold one booking for a given set of dates: a new booking is
+  refused if it overlaps a booking the same user already has.
+- The driving license must be valid until at least the end of the slot.
+- A car can only be booked while it still has stock for the requested dates.
+
+## Notes
+
+- Storage is in-memory, so data resets when the backend restarts. This keeps the
+  MVP simple; swapping in a database only means writing new repository adapters.
