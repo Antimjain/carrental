@@ -1,12 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createBooking } from '../api';
 
 const emptyForm = { carId: '', userId: '', startDate: '', endDate: '', licenseValidUntil: '' };
 
-function BookingForm() {
+function BookingForm({ draft }) {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (draft) {
+      setForm((current) => ({
+        ...current,
+        carId: String(draft.carId),
+        startDate: draft.startDate,
+        endDate: draft.endDate
+      }));
+    }
+  }, [draft]);
 
   function update(field, value) {
     setForm({ ...form, [field]: value });

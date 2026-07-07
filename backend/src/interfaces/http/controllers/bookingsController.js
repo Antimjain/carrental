@@ -9,7 +9,7 @@ function makeBookingsController({ createBooking }) {
       const booking = createBooking.execute({ carId, userId, startDate, endDate, licenseValidUntil });
       res.status(201).json(booking);
     } catch (err) {
-      res.status(400).json({ message: err.message });
+      res.status(err.status || 400).json({ message: err.message });
     }
   }
 

@@ -38,8 +38,20 @@ describe('POST /bookings', () => {
     expect(res.status).toBe(400);
   });
 
-  it('answers 400 when a rule is broken', async () => {
+  it('answers 400 when a validation rule is broken', async () => {
     const res = await request(buildApp()).post('/bookings').send({ ...validBody, licenseValidUntil: '2026-06-12' });
     expect(res.status).toBe(400);
+  });
+
+  it('answers 404 when the car does not exist', async () => {
+    const res = await request(buildApp()).post('/bookings').send({ ...validBody, carId: 999 });
+    expect(res.status).toBe(404);
+  });
+
+  it('answers 409 when there is no stock left for the dates', async () => {
+    const app = buildApp();
+    await request(app).post('/bookings').send({ ...validBody, carId: 4, userId: 'first' });
+    const res = await request(app).post('/bookings').send({ ...validBody, carId: 4, userId: 'second' });
+    expect(res.status).toBe(409);
   });
 });
