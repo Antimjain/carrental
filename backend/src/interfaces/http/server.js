@@ -5,7 +5,8 @@ const bookingsRoutes = require('./routes/bookingsRoutes');
 
 function createServer({ carsController, bookingsController }) {
   const app = express();
-  app.use(cors());
+  const allowedOrigin = process.env.CORS_ORIGIN;
+  app.use(cors(allowedOrigin ? { origin: allowedOrigin } : undefined));
   app.use(express.json());
 
   app.get('/health', (req, res) => res.json({ status: 'ok' }));

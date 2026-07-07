@@ -48,7 +48,20 @@ npm run dev      # app on http://localhost:5173
 npm test         # run the Vitest component tests
 ```
 
-The frontend talks to the backend at `http://localhost:3001`.
+The frontend talks to the backend at `http://localhost:3001` by default.
+
+## Deployment
+
+The app is two deployables: the Express API and the static frontend build.
+
+- **API (Render)** - `render.yaml` describes a free Node web service rooted in
+  `backend`. It uses `PORT` (set by the host) and, optionally, `CORS_ORIGIN` to
+  restrict which frontend origin may call it. Health check: `/health`.
+- **Frontend (Vercel)** - `frontend/vercel.json` builds with Vite. Set
+  `VITE_API_URL` to the deployed API URL (see `frontend/.env.example`); it is
+  read at build time and falls back to `http://localhost:3001` locally.
+
+Data is in-memory, so it resets whenever the API restarts.
 
 ## User stories
 
