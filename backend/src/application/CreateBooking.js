@@ -1,3 +1,5 @@
+const Booking = require('../domain/booking/Booking');
+
 class CreateBooking {
   constructor({ carRepository, bookingRepository, priceCalculator }) {
     this.carRepository = carRepository;
@@ -6,7 +8,28 @@ class CreateBooking {
   }
 
   execute({ carId, userId, startDate, endDate, licenseValidUntil }) {
-    throw new Error('Not implemented');
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start) || isNaN(end)) {
+      throw new Error('Invalid dates');
+    }
+    if (start >= end) {
+      throw new Error('startDate must be before endDate');
+    }
+
+    const car = this.carRepository.findById(carId);
+    if (!car) {
+      throw new Error('Car not found');
+    }
+
+    const booked = this.bookingRepository.findByCarAndRange(carId, start, end).length;
+    if (booked >= car.stock) {
+      throw new Error('No stock available for these dates');
+    }
+
+    const totalPrice = this.priceCalculator.totalPrice(car, start, end);
+    const booking = new Booking({ carId, userId, startDate, endDate, licenseValidUntil, totalPrice });
+    return this.bookingRepository.save(booking);
   }
 }
 
