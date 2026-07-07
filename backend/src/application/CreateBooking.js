@@ -22,6 +22,13 @@ class CreateBooking {
       throw new Error('Car not found');
     }
 
+    const userHasOverlap = this.bookingRepository
+      .findByUser(userId)
+      .some((b) => new Date(b.startDate) < end && new Date(b.endDate) > start);
+    if (userHasOverlap) {
+      throw new Error('User already has a booking on these dates');
+    }
+
     const booked = this.bookingRepository.findByCarAndRange(carId, start, end).length;
     if (booked >= car.stock) {
       throw new Error('No stock available for these dates');

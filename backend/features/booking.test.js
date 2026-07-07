@@ -41,4 +41,20 @@ describe('US2 - Create a booking for a car', () => {
   it('rejects a slot where the start is not before the end', () => {
     expect(() => buildUseCase().execute({ ...validRequest, startDate: '2026-06-13', endDate: '2026-06-10' })).toThrow();
   });
+
+  it('rejects a second booking for the same user on overlapping dates', () => {
+    const bookings = new InMemoryBookingRepository();
+    const useCase = buildUseCase(bookings);
+    useCase.execute(validRequest);
+    // Different car, but the same user and overlapping dates.
+    expect(() => useCase.execute({ ...validRequest, carId: 2, startDate: '2026-06-12', endDate: '2026-06-15' })).toThrow();
+  });
+
+  it('allows the same user to book again on dates that do not overlap', () => {
+    const bookings = new InMemoryBookingRepository();
+    const useCase = buildUseCase(bookings);
+    useCase.execute(validRequest);
+    const second = useCase.execute({ ...validRequest, startDate: '2026-06-20', endDate: '2026-06-22' });
+    expect(second.id).toBeDefined();
+  });
 });
