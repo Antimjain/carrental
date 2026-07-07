@@ -18,7 +18,11 @@ class InMemoryBookingRepository extends BookingRepository {
   }
 
   findByCarAndRange(carId, startDate, endDate) {
-    return [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return this.bookings.filter(
+      (b) => b.carId === carId && new Date(b.startDate) < end && new Date(b.endDate) > start
+    );
   }
 }
 
