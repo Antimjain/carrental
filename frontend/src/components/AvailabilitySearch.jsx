@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getAvailability } from '../api';
 
-function AvailabilitySearch() {
+function AvailabilitySearch({ onBook }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [cars, setCars] = useState([]);
@@ -52,6 +52,7 @@ function AvailabilitySearch() {
               <th>Available</th>
               <th>Total price</th>
               <th>Average day price</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +62,11 @@ function AvailabilitySearch() {
                 <td>{car.availableStock}</td>
                 <td>${car.totalPrice}</td>
                 <td>${car.averageDayPrice}</td>
+                <td>
+                  <button type="button" onClick={() => onBook({ carId: car.id, startDate, endDate })}>
+                    Book
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
