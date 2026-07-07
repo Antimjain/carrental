@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Carental - Booking MVP
 
 A small car rental booking engine built for the Bolttech Carental fullstack test.
@@ -62,3 +63,6 @@ npm run dev      # app on http://localhost:5173
 
 Each car has a price per day for each season. The booking price adds up the price of
 every day in the range using the season of that day.
+=======
+# Carrental - Booking MVP
+>>>>>>> 9e89eada79c445732145bc7b3eddbe04ca1891bd
