@@ -19,10 +19,8 @@ the next things I would add, roughly in order:
 - An endpoint to list or cancel a user's bookings.
 
 ## Frontend
-- Pick a car from a proper list instead of typing the car id (the Book button
-  already carries the id, this would remove the manual field).
 - Loading and disabled states, and form-level validation messages.
-- Basic styling; the current UI is intentionally plain to focus on functionality.
+- A calendar / date picker with sensible min dates instead of raw date inputs.
 
 ## Quality
 - More edge case tests (leap years, very long ranges crossing several seasons).
