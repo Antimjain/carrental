@@ -5,7 +5,7 @@ const emptyForm = { carId: '', userId: '', startDate: '', endDate: '', licenseVa
 
 const today = new Date().toISOString().slice(0, 10);
 
-function BookingForm({ draft, onClose }) {
+function BookingForm({ draft, onClose, onBooked }) {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -39,6 +39,9 @@ function BookingForm({ draft, onClose }) {
       const booking = await createBooking({ ...form, carId: Number(form.carId) });
       if (booking.id) {
         setMessage(`Booking #${booking.id} confirmed. Total price: $${booking.totalPrice}`);
+        if (onBooked) {
+          onBooked();
+        }
       } else {
         setError(booking.message || 'Could not create the booking');
       }

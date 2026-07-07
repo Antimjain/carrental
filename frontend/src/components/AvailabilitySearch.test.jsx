@@ -59,4 +59,18 @@ describe('AvailabilitySearch', () => {
       endDate: '2026-06-13'
     });
   });
+
+  it('reloads availability when the refresh signal changes', async () => {
+    getAvailability.mockResolvedValue([car]);
+    const { container, rerender } = render(<AvailabilitySearch onBook={vi.fn()} refreshSignal={0} />);
+
+    search(container);
+    await screen.findByText('Toyota Yaris');
+    expect(getAvailability).toHaveBeenCalledTimes(1);
+
+    rerender(<AvailabilitySearch onBook={vi.fn()} refreshSignal={1} />);
+
+    await vi.waitFor(() => expect(getAvailability).toHaveBeenCalledTimes(2));
+    expect(getAvailability).toHaveBeenLastCalledWith('2026-06-10', '2026-06-13');
+  });
 });
