@@ -57,4 +57,8 @@ describe('US2 - Create a booking for a car', () => {
     const second = useCase.execute({ ...validRequest, startDate: '2026-06-20', endDate: '2026-06-22' });
     expect(second.id).toBeDefined();
   });
+
+  it('rejects a booking when the driving license expires during the period', () => {
+    expect(() => buildUseCase().execute({ ...validRequest, licenseValidUntil: '2026-06-12' })).toThrow();
+  });
 });

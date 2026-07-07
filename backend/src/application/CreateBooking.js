@@ -17,6 +17,11 @@ class CreateBooking {
       throw new Error('startDate must be before endDate');
     }
 
+    const licenseUntil = new Date(licenseValidUntil);
+    if (isNaN(licenseUntil) || licenseUntil < end) {
+      throw new Error('Driving license must be valid through the whole booking period');
+    }
+
     const car = this.carRepository.findById(carId);
     if (!car) {
       throw new Error('Car not found');
