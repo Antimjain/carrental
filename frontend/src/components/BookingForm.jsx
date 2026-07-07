@@ -5,7 +5,7 @@ const emptyForm = { carId: '', userId: '', startDate: '', endDate: '', licenseVa
 
 const today = new Date().toISOString().slice(0, 10);
 
-function BookingForm({ draft, onClose }) {
+function BookingForm({ draft, onClose, onRefresh }) {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -41,6 +41,11 @@ function BookingForm({ draft, onClose }) {
         setMessage(`Booking #${booking.id} confirmed. Total price: $${booking.totalPrice}`);
       } else {
         setError(booking.message || 'Could not create the booking');
+      }
+      // The server answered, so the availability may have changed either way
+      // (a new booking, or a car that another user just took). Refresh the grid.
+      if (onRefresh) {
+        onRefresh();
       }
     } catch (err) {
       setError('Could not reach the server');

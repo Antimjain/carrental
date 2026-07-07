@@ -34,14 +34,29 @@ describe('BookingForm', () => {
     expect(await screen.findByText('Booking #7 confirmed. Total price: $295.29')).toBeInTheDocument();
   });
 
-  it('shows the server message when the booking is refused', async () => {
-    createBooking.mockResolvedValue({ message: 'no stock for the dates' });
-    const { container } = render(<BookingForm draft={draft} onClose={vi.fn()} />);
+  it('refreshes availability after a successful booking', async () => {
+    createBooking.mockResolvedValue({ id: 7, totalPrice: 295.29 });
+    const onRefresh = vi.fn();
+    const { container } = render(<BookingForm draft={draft} onClose={vi.fn()} onRefresh={onRefresh} />);
 
     fireEvent.change(screen.getByLabelText('User'), { target: { value: 'u1' } });
     fireEvent.change(screen.getByLabelText('License valid until'), { target: { value: '2027-01-01' } });
     fireEvent.submit(container.querySelector('form'));
 
-    expect(await screen.findByText('no stock for the dates')).toBeInTheDocument();
+    await screen.findByText('Booking #7 confirmed. Total price: $295.29');
+    expect(onRefresh).toHaveBeenCalled();
+  });
+
+  it('shows the server message and refreshes when the booking is refused', async () => {
+    createBooking.mockResolvedValue({ message: 'No stock available for these dates' });
+    const onRefresh = vi.fn();
+    const { container } = render(<BookingForm draft={draft} onClose={vi.fn()} onRefresh={onRefresh} />);
+
+    fireEvent.change(screen.getByLabelText('User'), { target: { value: 'u1' } });
+    fireEvent.change(screen.getByLabelText('License valid until'), { target: { value: '2027-01-01' } });
+    fireEvent.submit(container.querySelector('form'));
+
+    expect(await screen.findByText('No stock available for these dates')).toBeInTheDocument();
+    expect(onRefresh).toHaveBeenCalled();
   });
 });

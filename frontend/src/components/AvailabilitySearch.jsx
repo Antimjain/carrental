@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getAvailability } from '../api';
 
 function daysBetween(startDate, endDate) {
@@ -9,7 +9,7 @@ function daysBetween(startDate, endDate) {
 
 const today = new Date().toISOString().slice(0, 10);
 
-function AvailabilitySearch({ onBook }) {
+function AvailabilitySearch({ onBook, refreshSignal }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [cars, setCars] = useState([]);
@@ -17,14 +17,13 @@ function AvailabilitySearch({ onBook }) {
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function loadAvailability(start, end) {
     setError('');
     try {
-      const result = await getAvailability(startDate, endDate);
+      const result = await getAvailability(start, end);
       if (Array.isArray(result)) {
         setCars(result);
-        setRange({ startDate, endDate });
+        setRange({ startDate: start, endDate: end });
       } else {
         setError(result.message || 'Could not load availability');
         setCars([]);
@@ -34,6 +33,18 @@ function AvailabilitySearch({ onBook }) {
       setError('Could not reach the server');
     }
   }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    loadAvailability(startDate, endDate);
+  }
+
+  // Refresh the results after a booking so the stock reflects it.
+  useEffect(() => {
+    if (refreshSignal > 0 && range) {
+      loadAvailability(range.startDate, range.endDate);
+    }
+  }, [refreshSignal]);
 
   const days = range ? daysBetween(range.startDate, range.endDate) : 0;
 
