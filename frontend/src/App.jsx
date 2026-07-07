@@ -21,7 +21,7 @@ function App() {
             <BookingForm
                 draft={draft}
                 onClose={() => setDraft(null)}
-                onBooked={() => setRefreshSignal((n) => n + 1)}
+                onRefresh={() => setRefreshSignal((n) => n + 1)}
             />
         </main>
     );
