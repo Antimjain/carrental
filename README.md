@@ -8,7 +8,7 @@ creating bookings, with seasonal pricing.
 
 - Backend: Node + Express (plain JavaScript)
 - Frontend: React + Vite
-- Tests: Jest (+ supertest for the HTTP layer)
+- Tests: Jest (+ supertest) for the backend, Vitest + Testing Library for the frontend
 
 ## Project structure
 
@@ -45,6 +45,7 @@ Frontend (in a second terminal):
 cd frontend
 npm install
 npm run dev      # app on http://localhost:5173
+npm test         # run the Vitest component tests
 ```
 
 The frontend talks to the backend at `http://localhost:3001`.

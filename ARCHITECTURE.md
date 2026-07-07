@@ -49,8 +49,13 @@ infrastructure  --------------------------
 
 ## Testing
 
-Tests live in `backend/features` and follow a given/when/then style:
+Backend tests live in `backend/features` and follow a given/when/then style:
 
 - `season` and `price` - pure domain unit tests.
 - `availability` and `booking` - use case tests with the in-memory repositories.
 - `availabilityApi` and `bookingApi` - HTTP tests with supertest.
+
+The frontend has component tests next to the components (Vitest + Testing
+Library, jsdom). They render `AvailabilitySearch` and `BookingForm` with the
+API module mocked, and check the search results, the prefilled booking modal and
+the confirmation and error messages.
