@@ -136,7 +136,28 @@ price is the total divided by the number of days.
 - The driving license must be valid until at least the end of the slot.
 - A car can only be booked while it still has stock for the requested dates.
 
+## Storage
+
+By default the API keeps everything in memory, so data resets when it restarts.
+To use PostgreSQL instead, the repositories have a second implementation and the
+storage is chosen at startup:
+
+```
+DB_DRIVER=postgres
+DATABASE_URL=postgres://postgres:dev@localhost:5432/carental
+```
+
+Create the tables and seed the cars once:
+
+```
+psql "$DATABASE_URL" -f backend/db/schema.sql
+```
+
+The domain and the use cases are unchanged - only the repository adapter and one
+wiring line differ. The database-backed tests in `features/pgRepository.test.js`
+run only when `DB_DRIVER=postgres` is set, and are skipped otherwise.
+
 ## Notes
 
-- Storage is in-memory, so data resets when the backend restarts. This keeps the
-  MVP simple; swapping in a database only means writing new repository adapters.
+- In-memory storage keeps the MVP simple; the PostgreSQL adapter above shows how
+  little changes when the storage does, thanks to the repository boundary.
