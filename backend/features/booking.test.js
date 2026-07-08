@@ -20,45 +20,45 @@ const validRequest = {
 };
 
 describe('US2 - Create a booking for a car', () => {
-  it('creates a booking when the car is available', () => {
-    const booking = buildUseCase().execute(validRequest);
+  it('creates a booking when the car is available', async () => {
+    const booking = await buildUseCase().execute(validRequest);
     expect(booking.id).toBeDefined();
     expect(booking.carId).toBe(1);
     expect(booking.totalPrice).toBe(295.29);
   });
 
-  it('rejects a booking for a car that does not exist', () => {
-    expect(() => buildUseCase().execute({ ...validRequest, carId: 999 })).toThrow();
+  it('rejects a booking for a car that does not exist', async () => {
+    await expect(buildUseCase().execute({ ...validRequest, carId: 999 })).rejects.toThrow();
   });
 
-  it('rejects a booking when the car has no stock left for the slot', () => {
+  it('rejects a booking when the car has no stock left for the slot', async () => {
     const bookings = new InMemoryBookingRepository();
     // Jaguar (id 4) has a single unit; book it for an overlapping slot first.
-    buildUseCase(bookings).execute({ ...validRequest, carId: 4, userId: 'other' });
-    expect(() => buildUseCase(bookings).execute({ ...validRequest, carId: 4 })).toThrow();
+    await buildUseCase(bookings).execute({ ...validRequest, carId: 4, userId: 'other' });
+    await expect(buildUseCase(bookings).execute({ ...validRequest, carId: 4 })).rejects.toThrow();
   });
 
-  it('rejects a slot where the start is not before the end', () => {
-    expect(() => buildUseCase().execute({ ...validRequest, startDate: '2026-06-13', endDate: '2026-06-10' })).toThrow();
+  it('rejects a slot where the start is not before the end', async () => {
+    await expect(buildUseCase().execute({ ...validRequest, startDate: '2026-06-13', endDate: '2026-06-10' })).rejects.toThrow();
   });
 
-  it('rejects a second booking for the same user on overlapping dates', () => {
+  it('rejects a second booking for the same user on overlapping dates', async () => {
     const bookings = new InMemoryBookingRepository();
     const useCase = buildUseCase(bookings);
-    useCase.execute(validRequest);
+    await useCase.execute(validRequest);
     // Different car, but the same user and overlapping dates.
-    expect(() => useCase.execute({ ...validRequest, carId: 2, startDate: '2026-06-12', endDate: '2026-06-15' })).toThrow();
+    await expect(useCase.execute({ ...validRequest, carId: 2, startDate: '2026-06-12', endDate: '2026-06-15' })).rejects.toThrow();
   });
 
-  it('allows the same user to book again on dates that do not overlap', () => {
+  it('allows the same user to book again on dates that do not overlap', async () => {
     const bookings = new InMemoryBookingRepository();
     const useCase = buildUseCase(bookings);
-    useCase.execute(validRequest);
-    const second = useCase.execute({ ...validRequest, startDate: '2026-06-20', endDate: '2026-06-22' });
+    await useCase.execute(validRequest);
+    const second = await useCase.execute({ ...validRequest, startDate: '2026-06-20', endDate: '2026-06-22' });
     expect(second.id).toBeDefined();
   });
 
-  it('rejects a booking when the driving license expires during the period', () => {
-    expect(() => buildUseCase().execute({ ...validRequest, licenseValidUntil: '2026-06-12' })).toThrow();
+  it('rejects a booking when the driving license expires during the period', async () => {
+    await expect(buildUseCase().execute({ ...validRequest, licenseValidUntil: '2026-06-12' })).rejects.toThrow();
   });
 });

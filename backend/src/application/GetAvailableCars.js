@@ -7,7 +7,7 @@ class GetAvailableCars {
     this.priceCalculator = priceCalculator;
   }
 
-  execute({ startDate, endDate }) {
+  async execute({ startDate, endDate }) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (isNaN(start) || isNaN(end)) {
@@ -17,14 +17,19 @@ class GetAvailableCars {
       throw new ValidationError('startDate must be before endDate');
     }
 
-    return this.carRepository
-      .findAll()
-      .map((car) => this.toAvailableCar(car, start, end))
-      .filter((car) => car !== null);
+    const cars = await this.carRepository.findAll();
+    const available = [];
+    for (const car of cars) {
+      const entry = await this.toAvailableCar(car, start, end);
+      if (entry !== null) {
+        available.push(entry);
+      }
+    }
+    return available;
   }
 
-  toAvailableCar(car, start, end) {
-    const booked = this.bookingRepository.findByCarAndRange(car.id, start, end).length;
+  async toAvailableCar(car, start, end) {
+    const booked = (await this.bookingRepository.findByCarAndRange(car.id, start, end)).length;
     const availableStock = car.stock - booked;
     if (availableStock <= 0) {
       return null;

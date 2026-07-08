@@ -6,7 +6,7 @@ function makeCarsController({ getAvailableCars }) {
     }
 
     try {
-      const cars = getAvailableCars.execute({ startDate, endDate });
+      const cars = await getAvailableCars.execute({ startDate, endDate });
       res.json(cars);
     } catch (err) {
       res.status(err.status || 400).json({ message: err.message });

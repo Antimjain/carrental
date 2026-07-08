@@ -6,7 +6,7 @@ function makeBookingsController({ createBooking }) {
     }
 
     try {
-      const booking = createBooking.execute({ carId, userId, startDate, endDate, licenseValidUntil });
+      const booking = await createBooking.execute({ carId, userId, startDate, endDate, licenseValidUntil });
       res.status(201).json(booking);
     } catch (err) {
       res.status(err.status || 400).json({ message: err.message });

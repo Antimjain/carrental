@@ -8,7 +8,7 @@ class CreateBooking {
     this.priceCalculator = priceCalculator;
   }
 
-  execute({ carId, userId, startDate, endDate, licenseValidUntil }) {
+  async execute({ carId, userId, startDate, endDate, licenseValidUntil }) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (isNaN(start) || isNaN(end)) {
@@ -23,19 +23,19 @@ class CreateBooking {
       throw new ValidationError('Driving license must be valid through the whole booking period');
     }
 
-    const car = this.carRepository.findById(carId);
+    const car = await this.carRepository.findById(carId);
     if (!car) {
       throw new NotFoundError('Car not found');
     }
 
-    const userHasOverlap = this.bookingRepository
-      .findByUser(userId)
+    const userBookings = await this.bookingRepository.findByUser(userId);
+    const userHasOverlap = userBookings
       .some((b) => new Date(b.startDate) < end && new Date(b.endDate) > start);
     if (userHasOverlap) {
       throw new ConflictError('User already has a booking on these dates');
     }
 
-    const booked = this.bookingRepository.findByCarAndRange(carId, start, end).length;
+    const booked = (await this.bookingRepository.findByCarAndRange(carId, start, end)).length;
     if (booked >= car.stock) {
       throw new ConflictError('No stock available for these dates');
     }
