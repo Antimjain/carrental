@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createBooking } from '../api';
 
 const emptyForm = { carId: '', userId: '', startDate: '', endDate: '', licenseValidUntil: '' };
@@ -9,6 +9,10 @@ function BookingForm({ draft, onClose, onRefresh }) {
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  // A ref is updated synchronously, so it blocks a second submit that fires
+  // before React has re-rendered with the disabled button.
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (draft) {
@@ -33,6 +37,13 @@ function BookingForm({ draft, onClose, onRefresh }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    // Ignore extra submits (a double-click or Enter) while a request is in flight,
+    // so the same booking cannot be sent twice.
+    if (submittingRef.current) {
+      return;
+    }
+    submittingRef.current = true;
+    setSubmitting(true);
     setMessage('');
     setError('');
     try {
@@ -49,6 +60,9 @@ function BookingForm({ draft, onClose, onRefresh }) {
       }
     } catch (err) {
       setError('Could not reach the server');
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
     }
   }
 
@@ -79,7 +93,9 @@ function BookingForm({ draft, onClose, onRefresh }) {
             <label htmlFor="book-license">License valid until</label>
             <input id="book-license" type="date" min={form.endDate || today} value={form.licenseValidUntil} onChange={(e) => update('licenseValidUntil', e.target.value)} required />
           </div>
-          <button type="submit" className="btn primary block">Confirm booking</button>
+          <button type="submit" className="btn primary block" disabled={submitting}>
+            {submitting ? 'Booking…' : 'Confirm booking'}
+          </button>
         </form>
 
         {message && <p className="notice success">{message}</p>}

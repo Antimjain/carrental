@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAvailability } from '../api';
 
 function daysBetween(startDate, endDate) {
@@ -16,9 +16,13 @@ function AvailabilitySearch({ onBook, refreshSignal }) {
   const [range, setRange] = useState(null);
   const [error, setError] = useState('');
   const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
 
   async function loadAvailability(start, end) {
     setError('');
+    loadingRef.current = true;
+    setLoading(true);
     try {
       const result = await getAvailability(start, end);
       if (Array.isArray(result)) {
@@ -31,11 +35,18 @@ function AvailabilitySearch({ onBook, refreshSignal }) {
       setSearched(true);
     } catch (err) {
       setError('Could not reach the server');
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
     }
   }
 
   function handleSubmit(e) {
     e.preventDefault();
+    // Ignore extra submits while a search is already running.
+    if (loadingRef.current) {
+      return;
+    }
     loadAvailability(startDate, endDate);
   }
 
@@ -59,7 +70,9 @@ function AvailabilitySearch({ onBook, refreshSignal }) {
           <label htmlFor="return">Return</label>
           <input id="return" type="date" min={startDate || today} value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
         </div>
-        <button type="submit" className="btn primary">Check availability</button>
+        <button type="submit" className="btn primary" disabled={loading}>
+          {loading ? 'Checking…' : 'Check availability'}
+        </button>
       </form>
 
       {error && <p className="notice error">{error}</p>}
