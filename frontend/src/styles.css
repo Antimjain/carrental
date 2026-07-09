@@ -103,6 +103,11 @@ body {
   background: #0f4667;
 }
 
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn.block {
   width: 100%;
 }

@@ -43,6 +43,21 @@ describe('AvailabilitySearch', () => {
     expect(screen.getByText('$98.43 / day avg · 3 days')).toBeInTheDocument();
   });
 
+  it('runs only one search when submitted twice quickly', async () => {
+    let resolve;
+    getAvailability.mockReturnValue(new Promise((r) => { resolve = r; }));
+    const { container } = render(<AvailabilitySearch onBook={vi.fn()} />);
+
+    search(container);
+    fireEvent.submit(container.querySelector('form'));
+
+    expect(getAvailability).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Checking…' })).toBeDisabled();
+
+    resolve([car]);
+    await screen.findByText('Toyota Yaris');
+  });
+
   it('passes the chosen car and dates to onBook', async () => {
     getAvailability.mockResolvedValue([car]);
     const onBook = vi.fn();

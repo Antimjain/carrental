@@ -34,6 +34,25 @@ describe('BookingForm', () => {
     expect(await screen.findByText('Booking #7 confirmed. Total price: $295.29')).toBeInTheDocument();
   });
 
+  it('sends only one request when the form is submitted twice quickly', async () => {
+    let resolve;
+    createBooking.mockReturnValue(new Promise((r) => { resolve = r; }));
+    const { container } = render(<BookingForm draft={draft} onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText('User'), { target: { value: 'u1' } });
+    fireEvent.change(screen.getByLabelText('License valid until'), { target: { value: '2027-01-01' } });
+
+    const form = container.querySelector('form');
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(createBooking).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Booking…' })).toBeDisabled();
+
+    resolve({ id: 7, totalPrice: 295.29 });
+    await screen.findByText('Booking #7 confirmed. Total price: $295.29');
+  });
+
   it('refreshes availability after a successful booking', async () => {
     createBooking.mockResolvedValue({ id: 7, totalPrice: 295.29 });
     const onRefresh = vi.fn();
